@@ -4,5 +4,5 @@ const nextConfig = {
     basePath: '/interpedia', // Replace with your GitHub repo name
     assetPrefix: '/interpedia/', 
 };
-  
-module.exports = nextConfig;
+
+export default nextConfig;
