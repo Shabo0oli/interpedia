@@ -5,4 +5,4 @@ const nextConfig = {
     assetPrefix: '/interpedia/', 
 };
 
-export default nextConfig;
+module.exports = nextConfig
