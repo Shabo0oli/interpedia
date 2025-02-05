@@ -41,6 +41,7 @@ export default function StepsApp() {
             "Authorization": `Bearer ${API_KEY}`,
             "Content-Type": "application/json"
           },
+          mode: "cors",
           body: JSON.stringify({
             inputs: { wikipedia_url: wikiLink },
             response_mode: "blocking",
