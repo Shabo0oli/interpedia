@@ -1,101 +1,147 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState, useEffect } from 'react';
+
+export default function StepsApp() {
+  const [currentStep, setCurrentStep] = useState(-1); // -1 indicates the initial page
+  const [errorMessage, setErrorMessage] = useState("");
+  const [wikiLink, setWikiLink] = useState("");
+  const [stepsData, setStepsData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+
+  const API_KEY = "app-6Hs0TlnpBjz3jl78NoolZYWL"; // Replace with your actual API key
+
+  const handleNextStep = () => {
+    if (currentStep < stepsData.length - 1) {
+      setCurrentStep(currentStep + 1);
+      setErrorMessage(""); // Clear error message on next step
+    }
+  };
+
+  const handleAnswer = (isCorrect) => {
+    if (isCorrect) {
+      handleNextStep();
+    } else {
+      setErrorMessage("غلطه غلط غلوطه غلطه. برو دوباره بخون و بیا.");
+      setTimeout(() => {
+        setCurrentStep((prevStep) => Math.max(prevStep - 1, 0));
+        setErrorMessage(""); // Clear error message after going back
+      }, 2000); // 2-second delay before moving back
+    }
+  };
+
+  const handleStart = async () => {
+    setIsLoading(true);
+    if (wikiLink.trim() !== "") {
+      try {
+        const response = await fetch("https://api.dify.ai/v1", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${API_KEY}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            inputs: { wikipedia_url: wikiLink },
+            response_mode: "blocking",
+            user: "ShahabKarimi"
+          })
+        });
+
+        const data_response = await response.json();
+        const finalStep = {
+          heading: "ایزی ایزی تامام تامام",
+          content: "تبریک. با موفقیت تمومش کردی. میتونی بری یه چیز جدید یاد بگیری."
+        };
+        setStepsData([...data_response.data.outputs.result, finalStep]);
+        setCurrentStep(0);
+      } catch (error) {
+        setErrorMessage("به مشکلی خوردیم. دوباره امتحان کن.");
+      }
+      finally{
+        setIsLoading(false);
+      }
+    } else {
+      setErrorMessage("یه لینک درست بفرست.");
+    }
+  };
+
+  const handleDone = () => {
+    setCurrentStep(-1);
+    setWikiLink("");
+    setErrorMessage("");
+    setStepsData([]);
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-2">
+      <div className="bg-white shadow-md rounded-xl p-4 w-full max-w-sm sm:max-w-md text-center">
+        {currentStep === -1 ? (
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold mb-3">یه لینک ویکیپدیا بده</h1>
+            <input
+              type="text"
+              value={wikiLink}
+              onChange={(e) => setWikiLink(e.target.value)}
+              placeholder="https://en.wikipedia.org/wiki/..."
+              className="w-full p-2 mb-3 border rounded-lg shadow-sm text-sm sm:text-base"
+              style={{direction: "ltr"}}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+            <button
+              onClick={handleStart}
+              className="w-full py-2 bg-green-500 text-white rounded-lg shadow-md hover:bg-green-600"
+              disabled={isLoading}
+            >
+              {isLoading ? "لطفاً صبر کنید..." : "تعاملی یاد بگیر!"}
+            </button>
+            {isLoading && (
+              <div className="flex justify-center items-center mt-3">
+                <div className="w-6 h-6 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            )}
+            {errorMessage && (
+              <p className="mt-3 text-red-500 text-sm font-semibold">{errorMessage}</p>
+            )}
+          </div>
+        ) : (
+          <div>
+            {stepsData[currentStep].heading && (
+              <h1 className="text-xl sm:text-2xl font-bold mb-3">{stepsData[currentStep].heading}</h1>
+            )}
+            {stepsData[currentStep].content && (
+              <p className="text-base sm:text-lg mb-4">{stepsData[currentStep].content}</p>
+            )}
+
+           
+
+            {stepsData[currentStep].question && stepsData[currentStep].options ? (
+              <div>
+                <p className="mb-3 font-semibold text-sm sm:text-base">{stepsData[currentStep].question}</p>
+                {stepsData[currentStep].options.map((option, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleAnswer(option.isCorrect)}
+                    className="w-full py-2 mb-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 text-sm sm:text-base"
+                  >
+                    {option.answer}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <button
+                onClick={currentStep === stepsData.length - 1 ? handleDone : handleNextStep}
+                className="w-full py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 text-sm sm:text-base"
+              >
+                {currentStep === stepsData.length - 1 ? "اتمام" : "گام بعدی"}
+              </button>
+            )}
+            
+            {errorMessage && (
+              <p className="mb-3 text-red-500 text-sm font-semibold">{errorMessage}</p>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
